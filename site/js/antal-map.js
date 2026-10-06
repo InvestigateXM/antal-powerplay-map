@@ -19,7 +19,7 @@
     Object.keys(data.counts || {}).forEach(function (name) {
       parts.push(data.counts[name].toLocaleString() + ' ' + name);
     });
-    if (data.dataAsOf) parts.push('data as of ' + data.dataAsOf.slice(0, 16) + ' UTC');
+    if (data.dataAsOf) parts.push('data as of ' + data.dataAsOf.slice(0, 16).replace('T', ' ') + ' UTC');
     return parts.join(' · ');
   }
 

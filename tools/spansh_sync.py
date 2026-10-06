@@ -303,7 +303,7 @@ def info_html(rec):
     others = [p for p in rec.get("powers", []) if p != POWER]
     if others:
         rows.append(("Other powers present", ", ".join(others)))
-    rows.append(("Last updated", (rec.get("date") or "unknown")[:16]))
+    rows.append(("Last updated", (rec.get("date") or "unknown")[:16].replace("T", " ") + " UTC"))
     body = "".join(f"<b>{html.escape(k)}:</b> {html.escape(str(v))}<br>" for k, v in rows)
     q = urllib.parse.quote(name)
     links = (

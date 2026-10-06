@@ -1,0 +1,54 @@
+# Every 6 hours: merge Spansh's 1-day dump (systems changed in the last day)
+# into the state, drop systems whose population is 0, rebuild the map data.
+name: Update from 1-day dump
+
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Dump URL (leave empty for galaxy_1day.json.gz)"
+        required: false
+
+concurrency:
+  group: data-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Merge the 1-day dump
+        run: python tools/spansh_sync.py update ${{ inputs.url && format('--url "{0}"', inputs.url) || '' }}
+      - name: Commit data
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # sync-meta.json changes on every run; only commit when systems changed.
+          if git diff --quiet -- data/populated-systems.jsonl; then
+            echo "No system changes"; echo "changed=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          git add data site/data
+          git commit -m "Update systems from Spansh 1-day dump"
+          git push
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      pages: write
+      id-token: write

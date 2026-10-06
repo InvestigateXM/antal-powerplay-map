@@ -1,0 +1,44 @@
+# Full rebuild of data/populated-systems.jsonl from Spansh's populated-systems dump.
+# Run by hand once, and again whenever the state needs resetting.
+name: Seed populated systems
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Dump URL (leave empty for galaxy_populated.json.gz)"
+        required: false
+
+concurrency:
+  group: data-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download and filter the populated dump
+        run: python tools/spansh_sync.py seed ${{ inputs.url && format('--url "{0}"', inputs.url) || '' }}
+      - name: Commit data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data site/data
+          git diff --cached --quiet && { echo "No changes"; exit 0; }
+          git commit -m "Seed populated systems from Spansh"
+          git push
+
+  deploy:
+    needs: seed
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      pages: write
+      id-token: write

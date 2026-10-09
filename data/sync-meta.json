@@ -1,14 +1,14 @@
 {
   "lastUpdate": {
-    "added": 113,
-    "at": "2026-10-08T13:45:43Z",
-    "read": 174958,
+    "added": 175,
+    "at": "2026-10-09T13:33:45Z",
+    "read": 142800,
     "removed": 0,
-    "skipped": 158774,
+    "skipped": 123888,
     "source": "https://downloads.spansh.co.uk/galaxy_1day.json.gz",
     "stale": 0,
-    "total": 151975,
-    "updated": 16071
+    "total": 152150,
+    "updated": 18737
   },
   "seed": {
     "at": "2026-10-06T07:23:54Z",
